@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Power BI Semantic Model | Lucas Reist</title>
+  <meta name="description" content="A star schema semantic model in TMDL with calculation groups for time intelligence and rolling trend periods, built on bike share and NOAA weather data.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap nav">
+      <a class="brand" href="../index.html">LR<span>.</span></a>
+      <nav aria-label="Sections">
+        <a href="../index.html#projects">Projects</a>
+        <a href="../index.html#about">About</a>
+        <a href="../index.html#experience">Experience</a>
+        <a class="nav-cta" href="../assets/Lucas_Reist_Resume.pdf">Résumé</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap article">
+    <p class="back"><a href="../index.html#projects">← All projects</a></p>
+    <p class="eyebrow">01 · Semantic model</p>
+    <h1 class="article-title">Power BI Semantic Model</h1>
+    <p class="lead">A star schema semantic model built on top of the warehouse from my <a href="report-ingestion.html">report ingestion pipeline</a>, with calculation groups handling time intelligence and rolling trend periods. It's written in TMDL, the text format that Power BI, Fabric, and SSAS all read, so the whole model can be reviewed on GitHub like any other code.</p>
+
+    <ul class="tags"><li>DAX</li><li>TMDL</li><li>Calculation groups</li><li>SSAS Tabular</li><li>Power BI</li></ul>
+    <p class="actions article-actions"><a class="btn primary" href="https://github.com/narlaq/bikeshare-semantic-model">View the model on GitHub</a></p>
+
+    <dl class="stats">
+      <div><dt>17</dt><dd>measures, each with a note on its intended grain</dd></div>
+      <div><dt>2</dt><dd>calculation groups, 11 items</dd></div>
+      <div><dt>476</dt><dd>measure and calculation item combinations checked</dd></div>
+      <div><dt>68 yrs</dt><dd>of daily weather alongside the ridership data</dd></div>
+    </dl>
+
+    <section class="prose-block">
+      <h2>The model</h2>
+      <p>Two fact tables share one date table. Station activity has one row per station per day (62,312 rows from January 2022 through September 2026), and the weather table has one row per day of Chicago O'Hare readings going back to 1959.</p>
+      <figure class="diagram" aria-label="Star schema: Station and Date filter Station Activity; Date also filters Weather. Two calculation groups apply to every measure.">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 880 300" role="img">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" class="d-arrow"/>
+              </marker>
+            </defs>
+
+            <!-- Station -->
+            <rect x="10" y="40" width="170" height="120" rx="10" class="d-box"/>
+            <text x="25" y="66" class="d-title">Station</text>
+            <text x="25" y="92" class="d-col">Station Code</text>
+            <text x="25" y="112" class="d-col">Station Name</text>
+            <text x="25" y="132" class="d-col">District</text>
+
+            <!-- Station Activity -->
+            <rect x="240" y="40" width="180" height="120" rx="10" class="d-box d-fact"/>
+            <text x="255" y="66" class="d-title">Station Activity</text>
+            <text x="255" y="92" class="d-col">station × day</text>
+            <text x="255" y="112" class="d-col">62,312 rows</text>
+            <text x="255" y="132" class="d-col">10 measures</text>
+
+            <!-- Date -->
+            <rect x="480" y="20" width="200" height="160" rx="10" class="d-box"/>
+            <text x="495" y="46" class="d-title">Date</text>
+            <text x="495" y="72" class="d-col">Date (marked)</text>
+            <text x="495" y="92" class="d-col">Year · Month · Season</text>
+            <text x="495" y="112" class="d-col">Precipitation Category</text>
+            <text x="495" y="132" class="d-col">High Temperature Band</text>
+            <text x="495" y="152" class="d-col">Is Reported</text>
+
+            <!-- Weather -->
+            <rect x="740" y="40" width="130" height="120" rx="10" class="d-box d-fact"/>
+            <text x="755" y="66" class="d-title">Weather</text>
+            <text x="755" y="92" class="d-col">one row / day</text>
+            <text x="755" y="112" class="d-col">1959 to 2026</text>
+            <text x="755" y="132" class="d-col">7 measures</text>
+
+            <!-- Relationships: filters flow from the one side to the many side -->
+            <line x1="180" y1="100" x2="238" y2="100" class="d-line" marker-end="url(#arrow)"/>
+            <line x1="480" y1="100" x2="422" y2="100" class="d-line" marker-end="url(#arrow)"/>
+            <line x1="680" y1="100" x2="738" y2="100" class="d-line" marker-end="url(#arrow)"/>
+            <text x="186" y="92" class="d-card">1</text><text x="226" y="92" class="d-card">*</text>
+            <text x="470" y="92" class="d-card">1</text><text x="428" y="92" class="d-card">*</text>
+            <text x="686" y="92" class="d-card">1</text><text x="726" y="92" class="d-card">*</text>
+
+            <!-- Calculation groups -->
+            <rect x="240" y="215" width="300" height="70" rx="10" class="d-box d-calc"/>
+            <text x="255" y="240" class="d-title">Time Intelligence</text>
+            <text x="255" y="264" class="d-col">MTD · QTD · YTD · PY · YoY · YoY %</text>
+            <rect x="560" y="215" width="310" height="70" rx="10" class="d-box d-calc"/>
+            <text x="575" y="240" class="d-title">Trend Period</text>
+            <text x="575" y="264" class="d-col">Rolling 7 Days · 28 Days · 12 Months</text>
+            <text x="10" y="245" class="d-note">Calculation groups</text>
+            <text x="10" y="265" class="d-note">apply to every measure</text>
+          </svg>
+        </div>
+        <figcaption>All relationships are many-to-one and single direction, so filters flow from Date and Station out to the fact tables.</figcaption>
+      </figure>
+      <p>A couple of the design choices are worth explaining:</p>
+      <ul class="plain">
+        <li><strong>Weather is its own fact table.</strong> Joining the weather onto the station rows would be simpler, but each day's rainfall would then be added up once per station (36 times). Keeping it separate and relating it to Date means the precipitation totals stay correct no matter what's on the rows.</li>
+        <li><strong>The weather categories live on Date.</strong> Precipitation Category and High Temperature Band describe the day, so slicing ridership by weather goes through the same single relationship as everything else, with no bidirectional filtering needed.</li>
+      </ul>
+    </section>
+
+    <section class="prose-block">
+      <h2>Comparing a partial year to the prior year</h2>
+      <p>The bike share data runs through September 30, 2026. A standard prior-year calculation at the year level compares those nine months against all twelve months of 2025, which makes ridership look like it fell off a cliff:</p>
+      <div class="table-scroll">
+        <table class="rules">
+          <thead><tr><th>Period</th><th class="num-col">Trips</th><th class="num-col">2026 vs this</th></tr></thead>
+          <tbody>
+            <tr><td>2026 (Jan to Sep)</td><td class="num-col">829,697</td><td class="num-col"></td></tr>
+            <tr><td>2025, full year (standard prior year)</td><td class="num-col">1,045,266</td><td class="num-col">-20.6%</td></tr>
+            <tr><td>2025, Jan to Sep (this model's PY)</td><td class="num-col">834,199</td><td class="num-col">-0.5%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The Date table has an Is Reported column marking every date up to the last reported day, and the PY, YoY, and YoY % items only shift the dates that have actually been reported (the approach SQLBI describes for hiding future dates):</p>
+<pre><code class="language-plaintext">CALCULATE (
+    SELECTEDMEASURE (),
+    CALCULATETABLE (
+        SAMEPERIODLASTYEAR ( 'Date'[Date] ),
+        'Date'[Is Reported] = TRUE ()
+    )
+)</code></pre>
+      <p>The rolling windows in Trend Period anchor on the last reported date for the same reason, so "Rolling 28 Days" for 2026 measures the last 28 days of actual data rather than the empty weeks at the end of December.</p>
+    </section>
+
+    <section class="prose-block">
+      <h2>Measure notes</h2>
+      <p>Each measure in the model has a description covering the grain it's built for and what its total row means. A few examples:</p>
+      <div class="table-scroll">
+        <table class="rules">
+          <thead><tr><th>Measure</th><th>What the total row means</th></tr></thead>
+          <tbody>
+            <tr><td>Average Ride Minutes</td><td>Weighted by trips (total riding time over total trips), so a quiet station doesn't count as much as Navy Pier.</td></tr>
+            <tr><td>Average Daily Trips</td><td>Trips divided by days reported, so months and weather categories with different numbers of days compare fairly.</td></tr>
+            <tr><td>Trips vs Dry Days %</td><td>Compared against dry days under the same other filters. Meant for month, season, or weather category; blank for a single day unless that day was dry.</td></tr>
+            <tr><td>Hot Days per Year</td><td>Days at or above 90°F divided by the years in context, so a partial decade compares fairly with a full one.</td></tr>
+            <tr><td>YoY / YoY %</td><td>Blank when either period has no value, rather than showing a fake 100% change.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="prose-block">
+      <h2>How it was checked</h2>
+      <p>A PowerShell script deploys the model to SQL Server Analysis Services as an empty, temporary database, checks every column, measure, and calculation item for errors, evaluates all 17 measures under every combination of the two calculation groups (476 in total), and then deletes the database again.</p>
+      <p class="note">To be clear about what that covers: it proves the model and its DAX are valid, not that the numbers are right. The figures on this page were calculated in SQL against the same views the model reads. Refreshing the model against the data is the next step.</p>
+    </section>
+
+    <section class="prose-block">
+      <h2>About the data</h2>
+      <p class="note">Weather data is from NOAA NCEI's Global Historical Climatology Network – Daily, a U.S. government work in the public domain. Lakefront Bike Share is fictional, and its ridership is simulated from the real O'Hare weather for each day, so any weather effect on ridership reflects the simulation, not a finding.</p>
+    </section>
+
+    <p class="back bottom"><a href="../index.html#projects">← All projects</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <p>Lucas Reist · Kalamazoo, MI</p>
+      <p>
+        <a href="mailto:lucas.reist@gmail.com">Email</a> ·
+        <a href="https://www.linkedin.com/in/lucasreist">LinkedIn</a> ·
+        <a href="https://github.com/narlaq">GitHub</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>if (window.hljs) hljs.highlightAll();</script>
+</body>
+</html>

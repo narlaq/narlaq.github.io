@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Report Ingestion Pipeline | Lucas Reist</title>
+  <meta name="description" content="A Python pipeline that parses PDF and fixed-width reports, reconciles them against their own subtotals, and loads SQL Server with a full audit trail.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap nav">
+      <a class="brand" href="../index.html">LR<span>.</span></a>
+      <nav aria-label="Sections">
+        <a href="../index.html#projects">Projects</a>
+        <a href="../index.html#about">About</a>
+        <a href="../index.html#experience">Experience</a>
+        <a class="nav-cta" href="../assets/Lucas_Reist_Resume.pdf">Résumé</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap article">
+    <p class="back"><a href="../index.html#projects">← All projects</a></p>
+    <p class="eyebrow">02 · Data engineering</p>
+    <h1 class="article-title">Report Ingestion Pipeline</h1>
+    <p class="lead">A Python pipeline that pulls data out of PDF and fixed-width text reports, validates it against the report's own subtotals, and loads it into SQL Server with a full audit trail. Every line in every file is accounted for, and anything that can't be loaded gets logged along with the reason why.</p>
+
+    <ul class="tags"><li>Python</li><li>pdfplumber</li><li>T-SQL</li><li>SQL Server</li><li>pytest</li></ul>
+    <p class="actions article-actions"><a class="btn primary" href="https://github.com/narlaq/report-ingestion">View the code on GitHub</a></p>
+
+    <dl class="stats">
+      <div><dt>157,123</dt><dd>NOAA weather readings parsed</dd></div>
+      <div><dt>86</dt><dd>PDF pages turned into 3,306 rows</dd></div>
+      <div><dt>46</dt><dd>rejects, each with a reason</dd></div>
+      <div><dt>~15 s</dt><dd>full load, safe to re-run</dd></div>
+    </dl>
+
+    <section class="prose-block">
+      <h2>Source data</h2>
+      <p>The pipeline handles two types of files that tend to give standard import tools trouble:</p>
+      <ul class="plain">
+        <li><strong>Fixed-width text (real data):</strong> NOAA's daily weather files for Chicago O'Hare (going back to 1958) and Midway (back to 1997). Each line holds a month of readings for one measurement, packed into 31 eight-character slots, with NOAA's quality flags mixed in.</li>
+        <li><strong>PDF reports (fictional company):</strong> monthly station activity reports from a made-up bike share system, formatted like the line-printer reports that older systems still email out. I wrote a generator to reproduce the kinds of problems real legacy reports have, then built the parser to handle them.</li>
+      </ul>
+      <figure class="figure">
+        <img src="../assets/projects/report-sample.png" alt="A page of the Lakefront Bike Share station activity report: page headers, a column header row, station rows with wrapped names, and a bold district subtotal." loading="lazy">
+        <figcaption>A page from one of the generated reports, with wrapped station names and a district subtotal mixed in with the data.</figcaption>
+      </figure>
+    </section>
+
+    <section class="prose-block">
+      <h2>How it works</h2>
+      <ol class="steps">
+        <li><span class="step-title">Parse</span><span>Every source line becomes a row, a reported total, a known layout line, or a reject.</span></li>
+        <li><span class="step-title">Validate</span><span>Remove reprinted rows, then reconcile parsed totals against the report's own subtotals.</span></li>
+        <li><span class="step-title">Stage</span><span>Open an audit batch, then bulk-insert rows, rejects, and check results.</span></li>
+        <li><span class="step-title">Load</span><span>One stored procedure per source converts units and replaces exactly the rows the batch covers.</span></li>
+        <li><span class="step-title">Audit</span><span>The batch records lines read, rows loaded, rejects, failed checks, and status.</span></li>
+      </ol>
+    </section>
+
+    <section class="prose-block">
+      <h2>Problems in the PDF reports</h2>
+      <div class="table-scroll">
+        <table class="rules">
+          <thead><tr><th>In the report</th><th>How the pipeline handles it</th></tr></thead>
+          <tbody>
+            <tr><td>Headers and footers on every page</td><td>Recognized and skipped, without ending a row whose station name continues after them.</td></tr>
+            <tr><td>Station names wrapped onto a second line</td><td>Each row stays open until the next line shows whether the name continues.</td></tr>
+            <tr><td>Subtotals mixed in with data</td><td>Kept separately and used to reconcile the parsed rows.</td></tr>
+            <tr><td><code>$1,203.50</code>, <code>(12.00)</code>, <code>26:17</code>, <code>N/A</code></td><td>Parsed with strict formats; anything unexpected is rejected rather than guessed.</td></tr>
+            <tr><td>OCR-style typos like <code>2O8</code> (a letter O where a zero belongs)</td><td>Rejected with the column name and the bad value.</td></tr>
+            <tr><td>A row reprinted on the next page</td><td>Caught as a duplicate, with a pointer to the original line.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>There's no actual table structure in these PDFs to extract, so the parser reads every word along with its position on the page, then matches each word to a column based on where that page's column headers sit:</p>
+<pre><code class="language-python">def numeric_column(self, word: Word) -> str:
+    """Right-aligned values belong to the header whose right edge they line up with."""
+    edges = {
+        "trips_out": self.trips_out_x1,
+        "trips_in": self.trips_in_x1,
+        "avg_ride": self.avg_ride_x1,
+        "revenue": self.revenue_x1,
+    }
+    return min(edges, key=lambda col: abs(edges[col] - word.x1))</code></pre>
+    </section>
+
+    <section class="prose-block">
+      <h2>Reconciling against the report's subtotals</h2>
+      <p>Every district and day subtotal printed in the report gets compared to the sum of the rows that were actually parsed. When they don't match, the difference points straight to the rejected row that caused it, and the size of the gap matches that row's values:</p>
+<pre><code class="language-plaintext">2025-06-15  DISTRICT SOUTH  trips_in   reported 2,056   parsed 1,848   gap 208
+            -> LF-3003 on 2025-06-15: trips_in: '2O8' is not a whole number</code></pre>
+      <p>Across three months of reports, the only reconciliation failures were the 6 day/district combinations that lost a row to a typo. The 3 reprinted rows didn't affect the totals, since duplicates are removed before the comparison happens.</p>
+    </section>
+
+    <section class="prose-block">
+      <h2>Putting the weather data to use</h2>
+      <p>With almost 70 years of O'Hare weather loaded and converted to standard units, one query shows how often Chicago hits 90°F. It isn't a steady climb (1988's 47 days is still the record), but the 2020s so far have the highest average of any decade.</p>
+      <figure class="chart" aria-label="Average days per year at or above 90°F at Chicago O'Hare, by decade">
+        <figcaption class="chart-title">Days per year at or above 90°F, O'Hare, by decade</figcaption>
+        <div class="bars">
+          <div class="bar" style="--v:13.7"><span class="bar-value">13.7</span><span class="bar-fill"></span><span class="bar-label">1960s</span></div>
+          <div class="bar" style="--v:16.1"><span class="bar-value">16.1</span><span class="bar-fill"></span><span class="bar-label">1970s</span></div>
+          <div class="bar" style="--v:21.6"><span class="bar-value">21.6</span><span class="bar-fill"></span><span class="bar-label">1980s</span></div>
+          <div class="bar" style="--v:16.4"><span class="bar-value">16.4</span><span class="bar-fill"></span><span class="bar-label">1990s</span></div>
+          <div class="bar" style="--v:12.8"><span class="bar-value">12.8</span><span class="bar-fill"></span><span class="bar-label">2000s</span></div>
+          <div class="bar" style="--v:18.7"><span class="bar-value">18.7</span><span class="bar-fill"></span><span class="bar-label">2010s</span></div>
+          <div class="bar highlight" style="--v:23.3"><span class="bar-value">23.3</span><span class="bar-fill"></span><span class="bar-label">2020s*</span></div>
+        </div>
+        <p class="chart-note">*2020–2025, six complete years. Source: NOAA GHCN-Daily, station USW00094846.</p>
+      </figure>
+    </section>
+
+    <section class="prose-block">
+      <h2>Design decisions</h2>
+      <ul class="plain">
+        <li><strong>Reject instead of repair.</strong> <code>2O8</code> (with a letter O) is almost certainly 208, but a pipeline that guesses will eventually guess wrong, and nobody will notice when it does. Rejected rows are easy to review, and the reconciliation shows exactly what each one cost.</li>
+        <li><strong>Stage the raw values, convert in SQL.</strong> NOAA values come in tenths of a millimeter and tenths of a degree Celsius. The unit conversions and the long-to-wide pivot all happen in one set-based procedure, so they're documented in one place.</li>
+        <li><strong>One transaction per load, with <code>XACT_ABORT ON</code>.</strong> If a load fails, the warehouse is left exactly as it was, and the audit row records what was attempted and why it failed.</li>
+        <li><strong>Safe to re-run.</strong> Each batch replaces only the rows it covers, so loading everything a second time leaves the same 35,580 weather days and 3,306 station-days.</li>
+        <li><strong>Consistent SQL.</strong> All of the T-SQL follows <a href="tsql-style-guide.html">my style guide</a>.</li>
+      </ul>
+    </section>
+
+    <section class="prose-block">
+      <h2>About the data</h2>
+      <p class="note">Weather data is from NOAA NCEI's Global Historical Climatology Network – Daily, a U.S. government work in the public domain. Lakefront Bike Share is fictional. Its ridership is simulated from the real O'Hare weather for each day, so any rain-versus-ridership pattern in the joined data reflects the simulation, not a finding.</p>
+    </section>
+
+    <p class="back bottom"><a href="../index.html#projects">← All projects</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <p>Lucas Reist · Kalamazoo, MI</p>
+      <p>
+        <a href="mailto:lucas.reist@gmail.com">Email</a> ·
+        <a href="https://www.linkedin.com/in/lucasreist">LinkedIn</a> ·
+        <a href="https://github.com/narlaq">GitHub</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>if (window.hljs) hljs.highlightAll();</script>
+</body>
+</html>

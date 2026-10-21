@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>T-SQL Style Guide | Lucas Reist</title>
+  <meta name="description" content="A T-SQL style guide for SQL Server teams: each rule with a before-and-after example and the reason it exists.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap nav">
+      <a class="brand" href="../index.html">LR<span>.</span></a>
+      <nav aria-label="Sections">
+        <a href="../index.html#projects">Projects</a>
+        <a href="../index.html#about">About</a>
+        <a href="../index.html#experience">Experience</a>
+        <a class="nav-cta" href="../assets/Lucas_Reist_Resume.pdf">Résumé</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap article">
+    <p class="back"><a href="../index.html#projects">← All projects</a></p>
+    <p class="eyebrow">04 · Standards</p>
+    <h1 class="article-title">T-SQL Style Guide</h1>
+    <p class="lead">These are the formatting and coding conventions I use for SQL Server. Each rule comes with a before/after example and an explanation of why it's there, since the standards are enforced through code review rather than a linter, and a reviewer needs a reason to point to.</p>
+
+    <ul class="tags"><li>T-SQL</li><li>SQL Server</li><li>Code review</li></ul>
+
+    <section class="prose-block">
+      <h2>Why bother with a style guide</h2>
+      <p>Once a data warehouse grows past a few hundred SQL files, most of your time goes to reading code rather than writing it, and a lot of that code was written by someone else (or by you, two years ago, at 4:45 on a Friday). A shared style means every file reads the same way, which makes reviews faster and mistakes easier to spot.</p>
+      <p>Some of these rules prevent actual bugs, and some are just house style; I've labeled which is which. For the house-style rules, picking one way and sticking with it matters more than which way you pick.</p>
+      <p class="note">All examples use a made-up bike-share warehouse: trips, stations, riders, and daily weather.</p>
+    </section>
+
+    <section class="prose-block">
+      <h2>Before and after</h2>
+      <p>Below is the same query written quickly, then rewritten to follow the guide. The logic is identical in both.</p>
+      <div class="compare">
+        <figure>
+          <figcaption class="label before">Before</figcaption>
+<pre><code class="language-sql">select s.stationname, count(*) as trips, avg(datediff(minute, t.starttime, t.endtime)) as avgminutes,
+sum(case when r.ridertype = 'Member' then 1 else 0 end) as membertrips
+from warehouse.facttrip t join warehouse.dimstation s on t.startstationid = s.stationid
+left join warehouse.dimrider r on t.riderid = r.riderid
+where t.starttime >= '2026-06-01' and t.starttime &lt; '2026-09-01' and (s.city = 'Chicago' or s.city = 'Evanston')
+group by s.stationname
+order by trips desc</code></pre>
+        </figure>
+        <figure>
+          <figcaption class="label after">After</figcaption>
+<pre><code class="language-sql">SELECT
+    [DimStation].[StationName]
+    , COUNT(*) [Trips]
+    , AVG(DATEDIFF(MINUTE, [FactTrip].[StartTime], [FactTrip].[EndTime])) [Average Minutes]
+    , SUM(CASE WHEN [DimRider].[RiderType] = 'Member' THEN 1 ELSE 0 END) [Member Trips]
+FROM
+    [Warehouse].[FactTrip]
+    INNER JOIN [Warehouse].[DimStation] ON [FactTrip].[StartStationID] = [DimStation].[StationID]
+    LEFT JOIN [Warehouse].[DimRider] ON [FactTrip].[RiderID] = [DimRider].[RiderID]
+WHERE
+    [FactTrip].[StartTime] &gt;= '2026-06-01'
+    AND [FactTrip].[StartTime] &lt; '2026-09-01'
+    AND
+    (
+        [DimStation].[City] = 'Chicago'
+        OR [DimStation].[City] = 'Evanston'
+    )
+GROUP BY
+    [DimStation].[StationName]
+ORDER BY
+    [Trips] DESC;</code></pre>
+        </figure>
+      </div>
+    </section>
+
+    <section class="prose-block">
+      <h2>Quick reference</h2>
+      <div class="table-scroll">
+        <table class="rules">
+          <thead><tr><th>Rule</th><th>Standard</th><th>Type</th></tr></thead>
+          <tbody>
+            <tr><td><a href="#case-and-brackets">Keywords and names</a></td><td>UPPERCASE keywords; every identifier in <code>[brackets]</code></td><td>House style</td></tr>
+            <tr><td><a href="#layout">Layout</a></td><td>4 spaces; clause keywords at column 0</td><td>House style</td></tr>
+            <tr><td><a href="#leading-commas">Commas</a></td><td>Leading, at the start of each continuation line</td><td>Prevents bugs</td></tr>
+            <tr><td><a href="#aliases">Aliases</a></td><td>No <code>AS</code>; table aliases are full names or roles, never single letters</td><td>Prevents bugs</td></tr>
+            <tr><td><a href="#where">WHERE logic</a></td><td>Leading <code>AND</code>/<code>OR</code>; grouped conditions in parentheses on their own lines</td><td>Prevents bugs</td></tr>
+            <tr><td><a href="#case-expressions">CASE</a></td><td>Each <code>WHEN</code> on its own line; <code>END</code> carries the alias</td><td>House style</td></tr>
+            <tr><td><a href="#ctes">CTEs</a></td><td>Bracketed names; leading comma before each additional CTE</td><td>House style</td></tr>
+            <tr><td><a href="#procedures">Procedures</a></td><td><code>SET NOCOUNT ON</code> and <code>SET XACT_ABORT ON</code> first, every time</td><td>Prevents bugs</td></tr>
+            <tr><td><a href="#semicolons">Semicolons</a></td><td>End every statement</td><td>Prevents bugs</td></tr>
+            <tr><td><a href="#naming">Naming</a></td><td><code>usp</code>/<code>fn</code> prefixes, <code>Dim</code>/<code>Fact</code> tables, schemas by layer</td><td>Both</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="rule" id="case-and-brackets">
+      <h2><span class="num">01</span> Uppercase keywords, bracketed names</h2>
+      <p>Uppercase keywords separate the language from your data at a glance. Brackets on every schema, table, column, and alias mean names like <code>[Date]</code>, <code>[User]</code>, or <code>[Rain (in)]</code> always work. With one consistent look, find-and-replace across a thousand files is reliable.</p>
+      <p>Built-in functions with no schema, like <code>CAST</code>, <code>ISNULL</code>, and <code>GETDATE</code>, stay unbracketed.</p>
+<pre><code class="language-sql">SELECT
+    [DimDate].[Date]
+    , [FactWeather].[PrecipitationInches]
+FROM
+    [Warehouse].[FactWeather]
+    INNER JOIN [Warehouse].[DimDate] ON [FactWeather].[DateKey] = [DimDate].[DateKey];</code></pre>
+    </section>
+
+    <section class="rule" id="layout">
+      <h2><span class="num">02</span> Clause keywords and indentation</h2>
+      <p><code>SELECT</code>, <code>FROM</code>, <code>WHERE</code>, <code>GROUP BY</code>, and <code>ORDER BY</code> sit at column 0 on their own lines. Everything under them is indented 4 spaces, never tabs. Reading down the left edge gives you the shape of the query before you read a single column.</p>
+    </section>
+
+    <section class="rule" id="leading-commas">
+      <h2><span class="num">03</span> Leading commas</h2>
+      <p>With trailing commas, commenting out the last column in a list breaks the query. With leading commas, any column except the first can be commented out, added, or moved by touching a single line, which also means code review diffs show one changed line instead of two.</p>
+      <div class="compare">
+        <figure>
+          <figcaption class="label before">Before</figcaption>
+<pre><code class="language-sql">SELECT
+    [StationID],
+    [StationName],
+    [City],
+    -- [Capacity]
+FROM
+    [Warehouse].[DimStation];
+-- Incorrect syntax near the keyword 'FROM'.</code></pre>
+        </figure>
+        <figure>
+          <figcaption class="label after">After</figcaption>
+<pre><code class="language-sql">SELECT
+    [StationID]
+    , [StationName]
+    , [City]
+    -- , [Capacity]
+FROM
+    [Warehouse].[DimStation];</code></pre>
+        </figure>
+      </div>
+      <p class="note">The trade-off is that commenting out the first column breaks the query instead, but in practice the first column is almost always a key that never moves.</p>
+    </section>
+
+    <section class="rule" id="aliases">
+      <h2><span class="num">04</span> Descriptive aliases</h2>
+      <p>Single-letter table aliases make the reader keep a lookup table in their head. Using the table's own name means every column reference says where it comes from, and a search for <code>[FactTrip].[</code> finds every use. When the same table joins twice, the alias names its role.</p>
+      <p>Column aliases drop <code>AS</code> and are written for the person reading the output, because final columns often land directly in a report.</p>
+      <div class="compare">
+        <figure>
+          <figcaption class="label before">Before</figcaption>
+<pre><code class="language-sql">select t.tripid, s1.stationname as startname, s2.stationname as endname
+from warehouse.facttrip t
+join warehouse.dimstation s1 on t.startstationid = s1.stationid
+join warehouse.dimstation s2 on t.endstationid = s2.stationid</code></pre>
+        </figure>
+        <figure>
+          <figcaption class="label after">After</figcaption>
+<pre><code class="language-sql">SELECT
+    [FactTrip].[TripID]
+    , [StartStation].[StationName] [Start Station]
+    , [EndStation].[StationName] [End Station]
+FROM
+    [Warehouse].[FactTrip]
+    INNER JOIN [Warehouse].[DimStation] [StartStation] ON [FactTrip].[StartStationID] = [StartStation].[StationID]
+    INNER JOIN [Warehouse].[DimStation] [EndStation] ON [FactTrip].[EndStationID] = [EndStation].[StationID];</code></pre>
+        </figure>
+      </div>
+    </section>
+
+    <section class="rule" id="where">
+      <h2><span class="num">05</span> Grouping WHERE conditions</h2>
+      <p>SQL Server evaluates <code>AND</code> before <code>OR</code>, which is an easy thing to forget and a common source of wrong numbers. The query below was meant to return member trips in two cities, but it actually returns member trips in Chicago plus <em>every</em> trip in Evanston. Following the guide forces the grouping to be written out explicitly, which makes this kind of bug much easier to catch.</p>
+      <div class="compare">
+        <figure>
+          <figcaption class="label before">Before</figcaption>
+<pre><code class="language-sql">where r.ridertype = 'Member' and s.city = 'Chicago' or s.city = 'Evanston'</code></pre>
+        </figure>
+        <figure>
+          <figcaption class="label after">After</figcaption>
+<pre><code class="language-sql">WHERE
+    [DimRider].[RiderType] = 'Member'
+    AND
+    (
+        [DimStation].[City] = 'Chicago'
+        OR [DimStation].[City] = 'Evanston'
+    );</code></pre>
+        </figure>
+      </div>
+      <p class="note">This is the one example where the "after" version changes the logic, since it fixes the bug the layout exposed.</p>
+    </section>
+
+    <section class="rule" id="case-expressions">
+      <h2><span class="num">06</span> CASE expressions</h2>
+      <p>A <code>CASE</code> with a single condition can stay on one line. Anything longer gets one <code>WHEN</code> per line so the conditions read top to bottom, with the alias on the <code>END</code> line.</p>
+<pre><code class="language-sql">SELECT
+    [FactTrip].[TripID]
+    , CASE
+          WHEN [FactTrip].[DurationMinutes] &lt; 10 THEN 'Short'
+          WHEN [FactTrip].[DurationMinutes] &lt; 45 THEN 'Medium'
+          ELSE 'Long'
+      END [Trip Length]
+FROM
+    [Warehouse].[FactTrip];</code></pre>
+    </section>
+
+    <section class="rule" id="ctes">
+      <h2><span class="num">07</span> CTEs</h2>
+      <p>Each CTE gets a bracketed name describing what it holds, with its body indented between parentheses at column 0. Additional CTEs start with a leading comma, the same as columns do.</p>
+<pre><code class="language-sql">WITH [DailyTrips] AS
+(
+    SELECT
+        CAST ( [FactTrip].[StartTime] AS DATE ) [TripDate]
+        , COUNT(*) [Trips]
+    FROM
+        [Warehouse].[FactTrip]
+    GROUP BY
+        CAST ( [FactTrip].[StartTime] AS DATE )
+)
+, [DailyWeather] AS
+(
+    SELECT
+        [DimDate].[Date] [TripDate]
+        , [FactWeather].[PrecipitationInches]
+    FROM
+        [Warehouse].[FactWeather]
+        INNER JOIN [Warehouse].[DimDate] ON [FactWeather].[DateKey] = [DimDate].[DateKey]
+)
+SELECT
+    [DailyTrips].[TripDate] [Trip Date]
+    , [DailyTrips].[Trips]
+    , [DailyWeather].[PrecipitationInches] [Rain (in)]
+FROM
+    [DailyTrips]
+    LEFT JOIN [DailyWeather] ON [DailyTrips].[TripDate] = [DailyWeather].[TripDate]
+ORDER BY
+    [DailyTrips].[TripDate];</code></pre>
+      <p class="note">House style: <code>CAST</code>, <code>CONVERT</code>, <code>ISNULL</code>, <code>COALESCE</code>, <code>NULLIF</code>, and <code>TRY_CAST</code> get spaces inside their parentheses, which keeps nested conversions readable.</p>
+    </section>
+
+    <section class="rule" id="procedures">
+      <h2><span class="num">08</span> Stored procedure header</h2>
+      <p>Every stored procedure starts with the same two settings, and both of them prevent real problems:</p>
+      <ul class="plain">
+        <li><code>SET NOCOUNT ON</code> stops the "rows affected" messages that confuse some client tools and SSIS packages.</li>
+        <li><code>SET XACT_ABORT ON</code> makes any runtime error roll back the whole transaction. Without it, the delete below could succeed, the insert fail, and the fact table be left empty for that day.</li>
+      </ul>
+<pre><code class="language-sql">CREATE PROCEDURE [Warehouse].[uspLoadFactTrip]
+(
+    @LoadDate DATE
+    , @BatchID INT
+)
+AS
+BEGIN;
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    BEGIN TRANSACTION;
+
+    DELETE FROM
+        [Warehouse].[FactTrip]
+    WHERE
+        [FactTrip].[LoadDate] = @LoadDate;
+
+    INSERT INTO [Warehouse].[FactTrip]
+    (
+        [TripID]
+        , [StartStationID]
+        , [StartTime]
+        , [LoadDate]
+        , [BatchID]
+    )
+    SELECT
+        [TripImport].[TripID]
+        , [TripImport].[StartStationID]
+        , TRY_CAST ( [TripImport].[StartTime] AS DATETIME2(0) )
+        , @LoadDate
+        , @BatchID
+    FROM
+        [Staging].[TripImport];
+
+    COMMIT TRANSACTION;
+END;</code></pre>
+    </section>
+
+    <section class="rule" id="semicolons">
+      <h2><span class="num">09</span> Semicolons</h2>
+      <p>SQL Server already requires semicolons in a few places: <code>MERGE</code> has to end with one, and so does the statement right before a CTE or a <code>THROW</code>. Microsoft also lists leaving them out as deprecated. Ending every statement with one means nobody has to remember which cases require it.</p>
+    </section>
+
+    <section class="rule" id="naming">
+      <h2><span class="num">10</span> Naming conventions</h2>
+      <div class="table-scroll">
+        <table class="rules">
+          <thead><tr><th>Object</th><th>Convention</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Stored procedure</td><td><code>usp</code> prefix</td><td><code>[Warehouse].[uspLoadFactTrip]</code></td></tr>
+            <tr><td>Function</td><td><code>fn</code> prefix</td><td><code>[Analytics].[fnTripsByStation]</code></td></tr>
+            <tr><td>Dimension / fact table</td><td><code>Dim</code> / <code>Fact</code> prefix</td><td><code>[Warehouse].[DimStation]</code></td></tr>
+            <tr><td>Parameter</td><td>@PascalCase</td><td><code>@LoadDate</code></td></tr>
+            <tr><td>Schema</td><td>One per layer</td><td><code>Staging</code> → <code>Warehouse</code> → <code>Analytics</code>, plus <code>Audit</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Why <code>usp</code> and not <code>sp_</code>? SQL Server checks the <code>master</code> database first for any procedure starting with <code>sp_</code>. That costs a lookup on every call and risks colliding with a system procedure.</p>
+      <p>Schemas by layer make the data flow visible in every name: raw files land in <code>Staging</code>, modeled data lives in <code>Warehouse</code>, reports read from <code>Analytics</code>, and load history goes to <code>Audit</code>.</p>
+    </section>
+
+    <section class="prose-block">
+      <h2>How it's enforced</h2>
+      <p>There's no linter involved; the standards are enforced in code review, and having the reasoning written down for each rule keeps those reviews from getting subjective. I've also turned the guide into a set of instructions for the AI coding assistant I use, so any SQL it drafts already follows the guide by the time it gets to review.</p>
+    </section>
+
+    <p class="back bottom"><a href="../index.html#projects">← All projects</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <p>Lucas Reist · Kalamazoo, MI</p>
+      <p>
+        <a href="mailto:lucas.reist@gmail.com">Email</a> ·
+        <a href="https://www.linkedin.com/in/lucasreist">LinkedIn</a> ·
+        <a href="https://github.com/narlaq">GitHub</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>if (window.hljs) hljs.highlightAll();</script>
+</body>
+</html>

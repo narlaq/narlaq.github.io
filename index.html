@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lucas Reist | Data Engineer</title>
+  <meta name="description" content="Lucas Reist: data engineer and BI developer. SQL Server, Power BI, DAX, Python. Portfolio of data projects.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap nav">
+      <a class="brand" href="#top">LR<span>.</span></a>
+      <nav aria-label="Sections">
+        <a href="#projects">Projects</a>
+        <a href="#about">About</a>
+        <a href="#experience">Experience</a>
+        <a class="nav-cta" href="assets/Lucas_Reist_Resume.pdf">Résumé</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero wrap">
+      <p class="eyebrow">Data engineer · BI developer · Analytics engineer</p>
+      <h1>Lucas Reist</h1>
+      <p class="lead">I've spent the last fifteen years working with data in banking, credit unions, medical devices, and casino hospitality, building the warehouses, models, and reports that people rely on to make decisions. I'm looking for my next role, ideally somewhere with interesting data and a team that likes to ask questions.</p>
+      <div class="actions">
+        <a class="btn primary" href="assets/Lucas_Reist_Resume.pdf">Download résumé</a>
+        <a class="btn" href="https://www.linkedin.com/in/lucasreist">LinkedIn</a>
+        <a class="btn" href="https://github.com/narlaq">GitHub</a>
+        <a class="btn" href="mailto:lucas.reist@gmail.com">Email</a>
+      </div>
+
+      <dl class="stats">
+        <div><dt>15 yrs</dt><dd>working with data</dd></div>
+        <div><dt>4</dt><dd>industries worked in</dd></div>
+        <div><dt>79%</dt><dd>success rate predicting credit card charge-offs</dd></div>
+        <div><dt>800K+</dt><dd>customers in my campaign database</dd></div>
+      </dl>
+    </section>
+
+    <section id="projects" class="wrap section">
+      <div class="section-head">
+        <h2>Projects</h2>
+        <p>Everything here is built on public or made-up data, so I can share all of it (code included).</p>
+      </div>
+
+      <div class="cards">
+        <article class="card">
+          <div class="card-top"><span class="kicker">01 · Semantic model</span><span class="status done">Published</span></div>
+          <h3><a href="projects/semantic-model.html">Power BI Semantic Model</a></h3>
+          <p>A star schema model with calculation groups handling time intelligence and trend periods, so every visual uses the same date logic. The DAX is documented, along with the common mistakes it's written to avoid.</p>
+          <p class="read"><a href="projects/semantic-model.html">Read the write-up →</a></p>
+          <ul class="tags"><li>Power BI</li><li>DAX</li><li>Tabular</li></ul>
+        </article>
+
+        <article class="card">
+          <div class="card-top"><span class="kicker">02 · Data engineering</span><span class="status done">Published</span></div>
+          <h3><a href="projects/report-ingestion.html">Report Ingestion Pipeline</a></h3>
+          <p>A Python pipeline that pulls data out of PDF and fixed-width reports, checks it against the reports' own subtotals, and loads it into SQL Server, logging a reason for every row it rejects.</p>
+          <p class="read"><a href="projects/report-ingestion.html">Read the write-up →</a></p>
+          <ul class="tags"><li>Python</li><li>pdfplumber</li><li>T-SQL</li></ul>
+        </article>
+
+        <article class="card">
+          <div class="card-top"><span class="kicker">03 · Analysis</span><span class="status">In progress</span></div>
+          <h3>Predictive Analysis</h3>
+          <p>Looking for behavior patterns in a public dataset that predict an outcome, from the first question through the final answer (dead ends included).</p>
+          <ul class="tags"><li>Python</li><li>pandas</li><li>SQL</li></ul>
+        </article>
+
+        <article class="card">
+          <div class="card-top"><span class="kicker">04 · Standards</span><span class="status done">Published</span></div>
+          <h3><a href="projects/tsql-style-guide.html">T-SQL Style Guide</a></h3>
+          <p>The formatting and coding conventions I use for SQL Server, each with a before/after example and the reasoning behind it.</p>
+          <p class="read"><a href="projects/tsql-style-guide.html">Read the guide →</a></p>
+          <ul class="tags"><li>T-SQL</li><li>SQL Server</li><li>Code review</li></ul>
+        </article>
+      </div>
+    </section>
+
+    <section id="about" class="wrap section about">
+      <div class="section-head">
+        <h2>About</h2>
+      </div>
+      <div class="about-grid">
+        <div class="prose">
+          <p>I came to data through accounting, casino operations, and a whole lot of Excel (yes, I still actually enjoy working in Excel). Along the way I've built campaign models for an 800,000+ player database, found patterns in credit card behavior that predict charge-offs, and, as a team of three, designed / built / maintain a company-wide data warehouse and analytics platform for a bank.</p>
+          <p>I do my best work in a relaxed, productive environment where skepticism is not only allowed, but encouraged. Outside of work I'm a father who loves spending time with his kids, playing sports, riding motorcycles, and reading.</p>
+        </div>
+        <div class="skills">
+          <div><h3>Data engineering</h3><p>T-SQL, SSIS, SQL Server Agent, warehouse design, data cleansing</p></div>
+          <div><h3>BI &amp; modeling</h3><p>Power BI, DAX, SSAS Tabular, SSRS, Tableau, Excel</p></div>
+          <div><h3>Code &amp; automation</h3><p>Python (pandas), VBA, Power Automate</p></div>
+          <div><h3>Practices</h3><p>Data quality, coding standards, training analysts</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="experience" class="wrap section">
+      <div class="section-head">
+        <h2>Experience</h2>
+      </div>
+      <ol class="timeline">
+        <li>
+          <span class="when">2021 – now</span>
+          <div><h3>Business Intelligence Analyst III</h3><p class="where">Northpointe Bank · Banking</p></div>
+        </li>
+        <li>
+          <span class="when">2018 – 2021</span>
+          <div><h3>Lending Analyst</h3><p class="where">Advia Credit Union · Financial services</p></div>
+        </li>
+        <li>
+          <span class="when">2015 – 2018</span>
+          <div><h3>Sr. Business Analyst · HR Systems Support Analyst</h3><p class="where">Stryker · Medical devices</p></div>
+        </li>
+        <li>
+          <span class="when">2009 – 2015</span>
+          <div><h3>Yield Manager · Database Supervisor</h3><p class="where">FireKeepers Casino Hotel · Gaming and hospitality</p></div>
+        </li>
+      </ol>
+      <p class="more"><a href="assets/Lucas_Reist_Resume.pdf">Full résumé (PDF) →</a></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <p>Lucas Reist · Kalamazoo, MI</p>
+      <p>
+        <a href="mailto:lucas.reist@gmail.com">Email</a> ·
+        <a href="https://www.linkedin.com/in/lucasreist">LinkedIn</a> ·
+        <a href="https://github.com/narlaq">GitHub</a>
+      </p>
+    </div>
+  </footer>
+</body>
+</html>
