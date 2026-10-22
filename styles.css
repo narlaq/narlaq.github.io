@@ -21,10 +21,13 @@
   --radius: 12px;
   --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
   --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
 }
 
+/* Dark theme: follows the system setting unless the visitor picked light with the toggle,
+   and always applies when they picked dark. theme.js sets data-theme on <html>. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #0f1419;
     --surface: #161d25;
     --text: #e6eaef;
@@ -44,7 +47,31 @@
     --code-comment: #7d8894;
     --before: #f0a07a;
     --after: #7fd19b;
+    color-scheme: dark;
   }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0f1419;
+  --surface: #161d25;
+  --text: #e6eaef;
+  --muted: #9aa5b1;
+  --line: #26303b;
+  --accent: #f0a25e;
+  --accent-soft: #33241a;
+  --status: #9aa5b1;
+  --status-bg: #1e252e;
+  --done: #7fd19b;
+  --done-bg: #16291d;
+  --code-bg: #11171e;
+  --code-text: #d6dde5;
+  --code-keyword: #7fb2e5;
+  --code-string: #f0a07a;
+  --code-number: #c3a6ff;
+  --code-comment: #7d8894;
+  --before: #f0a07a;
+  --after: #7fd19b;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -78,6 +105,20 @@ a:hover { text-decoration: underline; }
 .brand span { color: var(--accent); }
 .brand:hover { text-decoration: none; }
 nav { display: flex; gap: 22px; align-items: center; }
+
+/* Light/dark toggle */
+.theme-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; padding: 0; border-radius: 999px; cursor: pointer;
+  background: transparent; border: 1px solid var(--line); color: var(--muted);
+}
+.theme-toggle:hover { color: var(--text); border-color: var(--accent); }
+.theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.theme-toggle svg { width: 17px; height: 17px; }
+/* Show the moon in light mode (click for dark) and the sun in dark mode (click for light). */
+.theme-toggle .icon-sun { display: none; }
+.theme-toggle[data-current="dark"] .icon-sun { display: block; }
+.theme-toggle[data-current="dark"] .icon-moon { display: none; }
 nav a { color: var(--muted); font-size: 15px; font-weight: 500; }
 nav a:hover { color: var(--text); text-decoration: none; }
 nav .nav-cta { color: var(--accent); border: 1px solid var(--accent); padding: 5px 12px; border-radius: 999px; }
@@ -242,12 +283,13 @@ table.rules { width: 100%; border-collapse: collapse; font-size: 15.5px; }
 /* Side project feature card */
 .feature .feature-text { max-width: 760px; }
 .feature .tags { margin: 4px 0 20px; }
-.feature-shot { margin: 0; }
-.feature-shot img { display: block; width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); background: #f6f5ef; }
-.feature-shot figcaption { color: var(--muted); font-size: 14.5px; margin-top: 10px; }
 .status.soon { color: var(--accent); background: var(--accent-soft); }
-.shot-scroll { overflow-x: auto; }
-@media (max-width: 760px) { .shot-scroll img { min-width: 640px; } }
+.shots { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 10px; }
+.shot { flex: 0 0 auto; width: 210px; margin: 0; scroll-snap-align: start; }
+.shot.wide { width: 431px; }
+.shot img { display: block; width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--line); background: #0f1a14; }
+.shot figcaption { color: var(--muted); font-size: 13.5px; line-height: 1.45; margin-top: 8px; }
+.shots-note { font-size: 14px; margin: 8px 0 0; }
 
 /* Model diagram */
 .diagram { margin: 8px 0 16px; padding: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
