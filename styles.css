@@ -114,7 +114,8 @@ h2 { font-size: 30px; letter-spacing: -0.02em; margin: 0 0 6px; }
 .section-head p { color: var(--muted); margin: 0; }
 
 /* Project cards */
-.cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+@media (max-width: 980px) { .cards { grid-template-columns: 1fr; } }
 .card {
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
   padding: 24px; display: flex; flex-direction: column;
