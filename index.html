@@ -76,6 +76,28 @@
       </div>
     </section>
 
+    <section id="side-project" class="wrap section">
+      <div class="section-head">
+        <h2>Side Project</h2>
+        <p>Something I've been building on nights and weekends, outside of the data work above.</p>
+      </div>
+      <article class="card feature">
+        <div class="card-top"><span class="kicker">Rec'd It</span><span class="status soon">Nearly ready for beta</span></div>
+        <h3>Rec'd It: Recreational Sports League Management</h3>
+        <div class="feature-text">
+          <p>A league and tournament management platform for rec sports. Players get their schedule, one-tap RSVPs, rosters, standings, and team messaging; captains report and confirm scores; league managers get tools for planning seasons, venues, officials, playoff seeding, and sanctions.</p>
+          <p>I built it database-first on Postgres (through Supabase): one person record for every player, captain, coach, and ref (since the same person can play Tuesday and ref Thursday), one event table for everything from practices to tournament finals, standings computed straight from confirmed scores so they can't drift, and row-level security so people only see what they should. The web app is React and TypeScript, installable on phones as a PWA, and everything in the stack is free and open source.</p>
+          <p>So far that's 30 database migrations, 19 screens, and a 34-test smoke suite that rebuilds the database from scratch every run. Next up is a beta with a real local league, with dev, UAT, and production environments mapped out on Supabase Cloud and Cloudflare Pages.</p>
+          <p class="note">Built with Claude Code as my development partner.</p>
+        </div>
+        <ul class="tags"><li>PostgreSQL</li><li>Supabase</li><li>React</li><li>TypeScript</li><li>Row-level security</li></ul>
+        <figure class="feature-shot">
+          <div class="shot-scroll"><img src="assets/projects/recdit-mockups.png" alt="Four phone screens from the Rec'd It design: a personal schedule with one-tap RSVP, a game detail page with venue and roster, a team message thread with an inline RSVP, and a division standings table." loading="lazy"></div>
+          <figcaption>Screens from the UI design: schedule, game detail, team messages, and standings.</figcaption>
+        </figure>
+      </article>
+    </section>
+
     <section id="about" class="wrap section about">
       <div class="section-head">
         <h2>About</h2>

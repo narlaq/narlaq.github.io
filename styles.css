@@ -239,6 +239,16 @@ table.rules { width: 100%; border-collapse: collapse; font-size: 15.5px; }
 .bar-value { font-size: 13.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .bar-label { font-family: var(--mono); font-size: 12px; color: var(--muted); }
 
+/* Side project feature card */
+.feature .feature-text { max-width: 760px; }
+.feature .tags { margin: 4px 0 20px; }
+.feature-shot { margin: 0; }
+.feature-shot img { display: block; width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); background: #f6f5ef; }
+.feature-shot figcaption { color: var(--muted); font-size: 14.5px; margin-top: 10px; }
+.status.soon { color: var(--accent); background: var(--accent-soft); }
+.shot-scroll { overflow-x: auto; }
+@media (max-width: 760px) { .shot-scroll img { min-width: 640px; } }
+
 /* Model diagram */
 .diagram { margin: 8px 0 16px; padding: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
 .diagram-scroll { overflow-x: auto; }
