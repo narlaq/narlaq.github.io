@@ -1,11 +1,12 @@
+/* Palette: Detroit Red Wings red for light mode, Detroit Tigers navy and orange for dark mode. */
 :root {
-  --bg: #fbfbfa;
+  --bg: #ffffff;
   --surface: #ffffff;
-  --text: #1c2430;
-  --muted: #5b6573;
-  --line: #e3e6ea;
-  --accent: #b4500f;
-  --accent-soft: #fbeee3;
+  --text: #16181b;
+  --muted: #555b63;
+  --line: #e4e4e6;
+  --accent: #ce1126;
+  --accent-soft: #fbe8ea;
   --status: #5b6573;
   --status-bg: #eef0f3;
   --done: #1e6b3a;
@@ -28,18 +29,18 @@
    and always applies when they picked dark. theme.js sets data-theme on <html>. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f1419;
-    --surface: #161d25;
-    --text: #e6eaef;
-    --muted: #9aa5b1;
-    --line: #26303b;
-    --accent: #f0a25e;
-    --accent-soft: #33241a;
-    --status: #9aa5b1;
-    --status-bg: #1e252e;
+    --bg: #0a1b30;
+    --surface: #0c2340;
+    --text: #f4f6f9;
+    --muted: #a9b6c8;
+    --line: #1f3a5f;
+    --accent: #ff6b35;
+    --accent-soft: #3a2620;
+    --status: #a9b6c8;
+    --status-bg: #16304f;
     --done: #7fd19b;
     --done-bg: #16291d;
-    --code-bg: #11171e;
+    --code-bg: #081627;
     --code-text: #d6dde5;
     --code-keyword: #7fb2e5;
     --code-string: #f0a07a;
@@ -52,18 +53,18 @@
 }
 
 :root[data-theme="dark"] {
-  --bg: #0f1419;
-  --surface: #161d25;
-  --text: #e6eaef;
-  --muted: #9aa5b1;
-  --line: #26303b;
-  --accent: #f0a25e;
-  --accent-soft: #33241a;
-  --status: #9aa5b1;
-  --status-bg: #1e252e;
+  --bg: #0a1b30;
+  --surface: #0c2340;
+  --text: #f4f6f9;
+  --muted: #a9b6c8;
+  --line: #1f3a5f;
+  --accent: #ff6b35;
+  --accent-soft: #3a2620;
+  --status: #a9b6c8;
+  --status-bg: #16304f;
   --done: #7fd19b;
   --done-bg: #16291d;
-  --code-bg: #11171e;
+  --code-bg: #081627;
   --code-text: #d6dde5;
   --code-keyword: #7fb2e5;
   --code-string: #f0a07a;
